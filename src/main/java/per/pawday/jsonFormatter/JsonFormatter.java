@@ -1,12 +1,10 @@
 package per.pawday.jsonFormatter;
 
-import org.omg.IOP.Encoding;
 import per.pawday.jsonFormatter.constants.IndentChars;
 import per.pawday.jsonFormatter.constants.IndentsStyles;
 import per.pawday.jsonFormatter.exceptions.JsonFormatterException;
 
 import java.io.*;
-import java.nio.charset.Charset;
 
 public class JsonFormatter
 {
@@ -79,7 +77,7 @@ public class JsonFormatter
                                         builder.append(indentChar);
                                     }
                                 }
-                                builder.append(c).append(System.lineSeparator());
+                                builder.append(c).append(newLine);
 
                                 currentIndent++;
 
@@ -170,13 +168,14 @@ public class JsonFormatter
         return builder.toString();
     }
 
-    public String formatToString(InputStream stream, Charset encoding) throws IOException
+    public String formatToString(Reader reader) throws IOException
     {
-        InputStreamReader reader = new InputStreamReader(stream,encoding);
         boolean inString = false;
         int currentIndent = 0;
 
         int by;
+
+        boolean hasDangerousBachSlash = false;
 
         StringBuilder builder = new StringBuilder();
         short firstCharController = 0;
@@ -276,13 +275,23 @@ public class JsonFormatter
             {
                 switch (c)
                 {
+                    case '\\':
+                        if(hasDangerousBachSlash)
+                            hasDangerousBachSlash = false;
+                        else
+                            hasDangerousBachSlash = true;
+                    break;
                     case '"':
                         builder.append('"');
-                        inString = false;
+                        if (!hasDangerousBachSlash)
+                        {
+                            inString = false;
+                        }
                         break;
 
                     default:
                         builder.append(c);
+                        if (hasDangerousBachSlash) hasDangerousBachSlash = false;
                 }
             }
             if(firstCharController == 0)
@@ -291,5 +300,184 @@ public class JsonFormatter
             }
         }
         return builder.toString();
+    }
+
+    public InputStream formatToInputStream(Reader reader,String threadName) throws IOException
+    {
+
+
+        CharStream returnedStream = new CharStream();
+
+
+        class ThisThread implements java.lang.Runnable
+        {
+            private int indentStyle;
+            public ThisThread(int indentStyle)
+            {
+                this.indentStyle = indentStyle;
+            }
+            @Override
+            public void run()
+            {
+                boolean inString = false;
+                int currentIndent = 0;
+
+                int by;
+
+                boolean hasDangerousBachSlash = false;
+
+
+                try
+                {
+                    short firstCharController = 0;
+                    while ((by = reader.read()) != - 1)
+                    {
+                        char c = (char) by;
+
+                        if (! inString)
+                        {
+
+                            switch (c)
+                            {
+                                case '{':
+                                case '[':
+                                    if (this.indentStyle == IndentsStyles.ONE_TRUE_BRACING_STYLE)
+                                    {
+                                        if (firstCharController == 0)
+                                        {
+                                            returnedStream.add(c);
+                                            returnedStream.add(newLine);
+                                        }
+                                        else
+                                        {
+                                            returnedStream.add(c);
+                                            returnedStream.add(newLine);
+                                        }
+                                        currentIndent++;
+                                        for (int i = 0;i < currentIndent;i++) {
+
+                                            returnedStream.add(indentChar);
+                                        }
+                                    }
+                                    else if (this.indentStyle == IndentsStyles.ERIC_ALLMANS_STYLE)
+                                    {
+                                        if (firstCharController != 0)
+                                        {
+                                            returnedStream.add(newLine);
+
+                                            for (int i = 0;i < currentIndent;i++)
+                                            {
+                                                returnedStream.add(indentChar);
+                                            }
+                                        }
+                                        returnedStream.add(c);
+                                        returnedStream.add(newLine);
+
+                                        currentIndent++;
+
+                                        for (int i = 0;i < currentIndent;i++)
+                                        {
+                                            returnedStream.add(indentChar);
+                                        }
+                                    }
+                                break;
+
+                                case '}':
+                                case ']':
+
+
+                                    returnedStream.add(newLine);
+                                    currentIndent--;
+
+                                    for (int i = 0;i < currentIndent;i++)
+                                    {
+                                        returnedStream.add(indentChar);
+                                    }
+                                    returnedStream.add(c);
+                                break;
+
+
+                                case '"':
+                                    returnedStream.add('"');
+                                    inString = true;
+                                break;
+
+
+                                case ':':
+                                    returnedStream.add(' ');
+                                    returnedStream.add(':');
+                                    returnedStream.add(' ');
+                                break;
+
+                                case ',':
+                                    returnedStream.add(',');
+                                    returnedStream.add(newLine);
+                                    for (int i = 0;i < currentIndent;i++)
+                                    {
+                                        returnedStream.add(indentChar);
+                                    }
+                                break;
+                                case '0':
+                                case '1':
+                                case '2':
+                                case '3':
+                                case '4':
+                                case '5':
+                                case '6':
+                                case '7':
+                                case '8':
+                                case '9':
+                                case '.':
+                                    returnedStream.add(c);
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            switch (c)
+                            {
+                                case '\\':
+                                    if(hasDangerousBachSlash)
+                                        hasDangerousBachSlash = false;
+                                    else
+                                        hasDangerousBachSlash = true;
+                                    break;
+                                case '"':
+                                    returnedStream.add('"');
+                                    if (hasDangerousBachSlash)
+                                    {
+                                        hasDangerousBachSlash = false;
+                                        break;
+                                    }
+                                    inString = false;
+                                    break;
+
+                                default:
+                                    returnedStream.add(c);
+                                    if (hasDangerousBachSlash) hasDangerousBachSlash = false;
+
+                            }
+                        }
+                        if (firstCharController == 0)
+                        {
+                            firstCharController++;
+                        }
+                    }
+                    returnedStream.complete();
+                }
+                catch (IOException e)
+                {
+                    throw new IllegalStateException(e.getMessage());
+                }
+            }
+        }
+
+        Thread thread = new Thread(new ThisThread(this.indentStyle));
+        thread.setName(threadName);
+        thread.start();
+        return returnedStream;
+
+
+
     }
 }
