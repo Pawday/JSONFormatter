@@ -40,6 +40,7 @@ public class JsonFormatter
 
         StringBuilder builder = new StringBuilder();
 
+        boolean hasDangerousBackSlash = false;
         try
         {
             short firstCharController = 0;
@@ -142,13 +143,25 @@ public class JsonFormatter
                 {
                     switch (c)
                     {
+                        case '\\':
+                            builder.append('\\');
+                            if (hasDangerousBackSlash)
+                                hasDangerousBackSlash = false;
+                            else
+                                hasDangerousBackSlash = true;
+
+                        break;
                         case '"':
                             builder.append('"');
-                            inString = false;
+                            if (! hasDangerousBackSlash)
+                            {
+                                inString = false;
+                            }
                         break;
 
                         default:
                             builder.append(c);
+                            if (hasDangerousBackSlash) hasDangerousBackSlash = false;
                     }
                 }
 
@@ -161,12 +174,14 @@ public class JsonFormatter
         catch (IOException ignored)
         {
             /*
-            * I don't understand how it can throw IOException from the prepared line.
-            */
+             * I don't understand how it can throw IOException from the prepared line.
+             */
         }
+
 
         return builder.toString();
     }
+
 
     public String formatToString(Reader reader) throws IOException
     {
@@ -175,7 +190,7 @@ public class JsonFormatter
 
         int by;
 
-        boolean hasDangerousBachSlash = false;
+        boolean hasDangerousBackSlash = false;
 
         StringBuilder builder = new StringBuilder();
         short firstCharController = 0;
@@ -276,14 +291,15 @@ public class JsonFormatter
                 switch (c)
                 {
                     case '\\':
-                        if(hasDangerousBachSlash)
-                            hasDangerousBachSlash = false;
+                        builder.append('\\');
+                        if(hasDangerousBackSlash)
+                            hasDangerousBackSlash = false;
                         else
-                            hasDangerousBachSlash = true;
+                            hasDangerousBackSlash = true;
                     break;
                     case '"':
                         builder.append('"');
-                        if (!hasDangerousBachSlash)
+                        if (!hasDangerousBackSlash)
                         {
                             inString = false;
                         }
@@ -291,7 +307,7 @@ public class JsonFormatter
 
                     default:
                         builder.append(c);
-                        if (hasDangerousBachSlash) hasDangerousBachSlash = false;
+                        if (hasDangerousBackSlash) hasDangerousBackSlash = false;
                 }
             }
             if(firstCharController == 0)
@@ -324,7 +340,7 @@ public class JsonFormatter
 
                 int by;
 
-                boolean hasDangerousBachSlash = false;
+                boolean hasDangerousBackSlash = false;
 
 
                 try
@@ -437,16 +453,17 @@ public class JsonFormatter
                             switch (c)
                             {
                                 case '\\':
-                                    if(hasDangerousBachSlash)
-                                        hasDangerousBachSlash = false;
+                                    returnedStream.add('\\');
+                                    if(hasDangerousBackSlash)
+                                        hasDangerousBackSlash = false;
                                     else
-                                        hasDangerousBachSlash = true;
+                                        hasDangerousBackSlash = true;
                                     break;
                                 case '"':
                                     returnedStream.add('"');
-                                    if (hasDangerousBachSlash)
+                                    if (hasDangerousBackSlash)
                                     {
-                                        hasDangerousBachSlash = false;
+                                        hasDangerousBackSlash = false;
                                         break;
                                     }
                                     inString = false;
@@ -454,7 +471,7 @@ public class JsonFormatter
 
                                 default:
                                     returnedStream.add(c);
-                                    if (hasDangerousBachSlash) hasDangerousBachSlash = false;
+                                    if (hasDangerousBackSlash) hasDangerousBackSlash = false;
 
                             }
                         }
