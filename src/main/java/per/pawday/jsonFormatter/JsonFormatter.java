@@ -53,6 +53,16 @@ public class JsonFormatter
 
                     switch (c)
                     {
+                        case 't':
+                        case 'r':
+                        case 'u':
+                        case 'e':
+                        case 'f':
+                        case 'a':
+                        case 'l':
+                        case 's':
+                            builder.append(c);
+                            break;
                         case '{':
                         case '[':
                             if (this.indentStyle == IndentsStyles.ONE_TRUE_BRACING_STYLE)
@@ -203,6 +213,17 @@ public class JsonFormatter
 
                 switch (c)
                 {
+                    case 't':
+                    case 'r':
+                    case 'u':
+                    case 'e':
+                    case 'f':
+                    case 'a':
+                    case 'l':
+                    case 's':
+                        builder.append(c);
+                    break;
+
                     case '{':
                     case '[':
                         if (this.indentStyle == IndentsStyles.ONE_TRUE_BRACING_STYLE)
@@ -355,6 +376,16 @@ public class JsonFormatter
 
                             switch (c)
                             {
+                                case 't':
+                                case 'r':
+                                case 'u':
+                                case 'e':
+                                case 'f':
+                                case 'a':
+                                case 'l':
+                                case 's':
+                                    returnedStream.add(c);
+                                break;
                                 case '{':
                                 case '[':
                                     if (this.indentStyle == IndentsStyles.ONE_TRUE_BRACING_STYLE)
