@@ -1,5 +1,6 @@
 package per.pawday.jsonFormatter;
 
+import jdk.nashorn.internal.objects.annotations.Constructor;
 import per.pawday.jsonFormatter.constants.IndentChars;
 import per.pawday.jsonFormatter.constants.IndentsStyles;
 import per.pawday.jsonFormatter.exceptions.JsonFormatterException;
@@ -8,9 +9,9 @@ import java.io.*;
 
 public class JsonFormatter
 {
-    public final int indentStyle;
-    public final int indentCount;
-    public final char indentChar;
+    private final int indentStyle;
+    private final int indentCount;
+    private final char indentChar;
 
     private final String newLine = System.lineSeparator();
 
@@ -61,6 +62,7 @@ public class JsonFormatter
                         case 'a':
                         case 'l':
                         case 's':
+                        case 'n':
                             builder.append(c);
                             break;
                         case '{':
@@ -97,7 +99,7 @@ public class JsonFormatter
                                     builder.append(indentChar);
                                 }
                             }
-                        break;
+                            break;
 
                         case '}':
                         case ']':
@@ -111,18 +113,18 @@ public class JsonFormatter
                                 builder.append(indentChar);
                             }
                             builder.append(c);
-                        break;
+                            break;
 
 
                         case '"':
                             builder.append('"');
                             inString = true;
-                        break;
+                            break;
 
 
                         case ':':
                             builder.append(' ').append(':').append(' ');
-                        break;
+                            break;
 
                         case ',':
                             builder.append(',').append(newLine);
@@ -130,7 +132,7 @@ public class JsonFormatter
                             {
                                 builder.append(indentChar);
                             }
-                        break;
+                            break;
 
                         case '0':
                         case '1':
@@ -144,7 +146,7 @@ public class JsonFormatter
                         case '9':
                         case '.':
                             builder.append(c);
-                        break;
+                            break;
 
 
                     }
@@ -155,19 +157,15 @@ public class JsonFormatter
                     {
                         case '\\':
                             builder.append('\\');
-                            if (hasDangerousBackSlash)
-                                hasDangerousBackSlash = false;
-                            else
-                                hasDangerousBackSlash = true;
-
-                        break;
+                            hasDangerousBackSlash = !hasDangerousBackSlash;
+                            break;
                         case '"':
                             builder.append('"');
                             if (! hasDangerousBackSlash)
-                            {
                                 inString = false;
-                            }
-                        break;
+                            else
+                                hasDangerousBackSlash = false;
+                            break;
 
                         default:
                             builder.append(c);
@@ -221,8 +219,9 @@ public class JsonFormatter
                     case 'a':
                     case 'l':
                     case 's':
+                    case 'n':
                         builder.append(c);
-                    break;
+                        break;
 
                     case '{':
                     case '[':
@@ -258,7 +257,7 @@ public class JsonFormatter
                                 builder.append(indentChar);
                             }
                         }
-                    break;
+                        break;
 
                     case '}':
                     case ']':
@@ -272,18 +271,18 @@ public class JsonFormatter
                             builder.append(indentChar);
                         }
                         builder.append(c);
-                    break;
+                        break;
 
 
                     case '"':
                         builder.append('"');
                         inString = true;
-                    break;
+                        break;
 
 
                     case ':':
                         builder.append(' ').append(':').append(' ');
-                    break;
+                        break;
 
                     case ',':
                         builder.append(',').append(newLine);
@@ -291,7 +290,7 @@ public class JsonFormatter
                         {
                             builder.append(indentChar);
                         }
-                    break;
+                        break;
                     case '0':
                     case '1':
                     case '2':
@@ -304,7 +303,7 @@ public class JsonFormatter
                     case '9':
                     case '.':
                         builder.append(c);
-                    break;
+                        break;
                 }
             }
             else
@@ -313,17 +312,14 @@ public class JsonFormatter
                 {
                     case '\\':
                         builder.append('\\');
-                        if(hasDangerousBackSlash)
-                            hasDangerousBackSlash = false;
-                        else
-                            hasDangerousBackSlash = true;
-                    break;
+                        hasDangerousBackSlash = !hasDangerousBackSlash;
+                        break;
                     case '"':
                         builder.append('"');
                         if (!hasDangerousBackSlash)
-                        {
                             inString = false;
-                        }
+                        else
+                            hasDangerousBackSlash = false;
                         break;
 
                     default:
@@ -341,8 +337,6 @@ public class JsonFormatter
 
     public InputStream formatToInputStream(Reader reader,String threadName) throws IOException
     {
-
-
         CharStream returnedStream = new CharStream();
 
 
@@ -384,8 +378,9 @@ public class JsonFormatter
                                 case 'a':
                                 case 'l':
                                 case 's':
+                                case 'n':
                                     returnedStream.add(c);
-                                break;
+                                    break;
                                 case '{':
                                 case '[':
                                     if (this.indentStyle == IndentsStyles.ONE_TRUE_BRACING_STYLE)
@@ -427,7 +422,7 @@ public class JsonFormatter
                                             returnedStream.add(indentChar);
                                         }
                                     }
-                                break;
+                                    break;
 
                                 case '}':
                                 case ']':
@@ -441,20 +436,20 @@ public class JsonFormatter
                                         returnedStream.add(indentChar);
                                     }
                                     returnedStream.add(c);
-                                break;
+                                    break;
 
 
                                 case '"':
                                     returnedStream.add('"');
                                     inString = true;
-                                break;
+                                    break;
 
 
                                 case ':':
                                     returnedStream.add(' ');
                                     returnedStream.add(':');
                                     returnedStream.add(' ');
-                                break;
+                                    break;
 
                                 case ',':
                                     returnedStream.add(',');
@@ -463,7 +458,7 @@ public class JsonFormatter
                                     {
                                         returnedStream.add(indentChar);
                                     }
-                                break;
+                                    break;
                                 case '0':
                                 case '1':
                                 case '2':
@@ -476,7 +471,7 @@ public class JsonFormatter
                                 case '9':
                                 case '.':
                                     returnedStream.add(c);
-                                break;
+                                    break;
                             }
                         }
                         else
@@ -485,10 +480,7 @@ public class JsonFormatter
                             {
                                 case '\\':
                                     returnedStream.add('\\');
-                                    if(hasDangerousBackSlash)
-                                        hasDangerousBackSlash = false;
-                                    else
-                                        hasDangerousBackSlash = true;
+                                    hasDangerousBackSlash = !hasDangerousBackSlash;
                                     break;
                                 case '"':
                                     returnedStream.add('"');
@@ -527,5 +519,306 @@ public class JsonFormatter
 
 
 
+    }
+
+    public String clearToString(String string)
+    {
+        StringReader reader = new StringReader(string);
+
+        boolean inString = false;
+        int currentIndent = 0;
+
+        int by;
+
+        StringBuilder builder = new StringBuilder();
+
+        boolean hasDangerousBackSlash = false;
+        try
+        {
+            while ((by = reader.read()) != -1)
+            {
+                char c = (char) by;
+
+                if (! inString)
+                {
+
+                    switch (c)
+                    {
+                        case 't':
+                        case 'r':
+                        case 'u':
+                        case 'e':
+                        case 'f':
+                        case 'a':
+                        case 'l':
+                        case 's':
+                        case 'n':
+                        case ':':
+                        case '{':
+                        case '[':
+                        case '}':
+                        case ']':
+                        case ',':
+                        case '0':
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7':
+                        case '8':
+                        case '9':
+                        case '.':
+                            builder.append(c);
+                            break;
+
+                        case '"':
+                            builder.append('"');
+                            inString = true;
+                            break;
+
+                    }
+                }
+                else
+                {
+                    switch (c)
+                    {
+                        case '\\':
+                            builder.append('\\');
+                            hasDangerousBackSlash = !hasDangerousBackSlash;
+
+                            break;
+                        case '"':
+                            builder.append('"');
+                            if (! hasDangerousBackSlash)
+                                inString = false;
+                            else
+                                hasDangerousBackSlash = false;
+
+                            break;
+
+                        default:
+                            builder.append(c);
+                            if (hasDangerousBackSlash) hasDangerousBackSlash = false;
+                    }
+                }
+            }
+        }
+        catch (IOException ignored)
+        {
+            /*
+             * I don't understand how it can throw IOException from the prepared line.
+             */
+        }
+
+
+        return builder.toString();
+    }
+
+    public String clearToString(Reader reader)
+    {
+        boolean inString = false;
+        int currentIndent = 0;
+
+        int by;
+
+        StringBuilder builder = new StringBuilder();
+
+        boolean hasDangerousBackSlash = false;
+        try
+        {
+            while ((by = reader.read()) != -1)
+            {
+                char c = (char) by;
+
+                if (! inString)
+                {
+
+                    switch (c)
+                    {
+                        case 't':
+                        case 'r':
+                        case 'u':
+                        case 'e':
+                        case 'f':
+                        case 'a':
+                        case 'l':
+                        case 's':
+                        case 'n':
+                        case ':':
+                        case '{':
+                        case '[':
+                        case '}':
+                        case ']':
+                        case ',':
+                        case '0':
+                        case '1':
+                        case '2':
+                        case '3':
+                        case '4':
+                        case '5':
+                        case '6':
+                        case '7':
+                        case '8':
+                        case '9':
+                        case '.':
+                            builder.append(c);
+                            break;
+
+                        case '"':
+                            builder.append('"');
+                            inString = true;
+                            break;
+
+                    }
+                }
+                else
+                {
+                    switch (c)
+                    {
+                        case '\\':
+                            builder.append('\\');
+                            hasDangerousBackSlash = !hasDangerousBackSlash;
+
+                            break;
+                        case '"':
+                            builder.append('"');
+                            if (! hasDangerousBackSlash)
+                            {
+                                inString = false;
+                            }
+                            else
+                            {
+                                hasDangerousBackSlash = false;
+                            }
+                            break;
+
+                        default:
+                            builder.append(c);
+                            if (hasDangerousBackSlash) hasDangerousBackSlash = false;
+                    }
+                }
+            }
+        }
+        catch (IOException ignored)
+        {
+            /*
+             * I don't understand how it can throw IOException from the prepared line.
+             */
+        }
+
+
+        return builder.toString();
+    }
+
+    public InputStream clearToInputStream(Reader reader,String threadName) throws IOException
+    {
+        CharStream returnedStream = new CharStream();
+
+
+        class ThisThread implements java.lang.Runnable
+        {
+            private int indentStyle;
+            public ThisThread(int indentStyle)
+            {
+                this.indentStyle = indentStyle;
+            }
+            @Override
+            public void run()
+            {
+                boolean inString = false;
+                int currentIndent = 0;
+
+                int by;
+
+                boolean hasDangerousBackSlash = false;
+
+
+                try
+                {
+                    while ((by = reader.read()) != - 1)
+                    {
+                        char c = (char) by;
+
+                        if (! inString)
+                        {
+
+                            switch (c)
+                            {
+                                case 't':
+                                case 'r':
+                                case 'u':
+                                case 'e':
+                                case 'f':
+                                case 'a':
+                                case 'l':
+                                case 's':
+                                case 'n':
+                                case '{':
+                                case '[':
+                                case '}':
+                                case ']':
+                                case ':':
+                                case ',':
+                                case '0':
+                                case '1':
+                                case '2':
+                                case '3':
+                                case '4':
+                                case '5':
+                                case '6':
+                                case '7':
+                                case '8':
+                                case '9':
+                                case '.':
+                                    returnedStream.add(c);
+                                    break;
+
+
+                                case '"':
+                                    returnedStream.add('"');
+                                    inString = true;
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            switch (c)
+                            {
+                                case '\\':
+                                    returnedStream.add('\\');
+                                    hasDangerousBackSlash = !hasDangerousBackSlash;
+                                    break;
+                                case '"':
+                                    returnedStream.add('"');
+                                    if (hasDangerousBackSlash)
+                                    {
+                                        hasDangerousBackSlash = false;
+                                        break;
+                                    }
+                                    inString = false;
+                                    break;
+
+                                default:
+                                    returnedStream.add(c);
+                                    if (hasDangerousBackSlash) hasDangerousBackSlash = false;
+
+                            }
+                        }
+                    }
+                    returnedStream.complete();
+                }
+                catch (IOException e)
+                {
+                    throw new IllegalStateException(e.getMessage());
+                }
+            }
+        }
+
+        Thread thread = new Thread(new ThisThread(this.indentStyle));
+        thread.setName(threadName);
+        thread.start();
+        return returnedStream;
     }
 }
